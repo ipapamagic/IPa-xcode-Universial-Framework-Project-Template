@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Kind</key>
+	<string>Xcode.Xcode3.ProjectTemplateUnitKind</string>
+	<key>Identifier</key>
+	<string>com.amagicstudio.universalFramework</string>
+	<key>Concrete</key>
+	<true/>
+	<key>Description</key>
+	<string>This template create an universal framework for ios</string>
+	<key>Ancestors</key>
+	<array>
+		<string>com.apple.dt.unit.bundleBase</string>
+		<string>com.apple.dt.unit.iPhoneBase</string>
+	</array>
+	<key>Targets</key>
+	<array>
+		<dict>
+			<key>ProductType</key>
+			<string>com.apple.product-type.bundle</string>
+			<key>SharedSettings</key>
+			<dict>
+				<key>INSTALL_PATH</key>
+				<string> $(BUILT_PRODUCTS_DIR)</string>
+				<key>WRAPPER_EXTENSION</key>
+				<string>framework</string>
+				<key>COMBINE_HIDPI_IMAGES</key>
+				<string>YES</string>
+				<key>DEAD_CODE_STRIPPING</key>
+				<string>NO</string>
+				<key>LINK_WITH_STANDARD_LIBRARIES</key>
+				<string>NO</string>
+				<key>MACH_O_TYPE</key>
+				<string>mh_object</string>
+				<key>FRAMEWORK_VERSION</key>
+				<string>A</string>
+				<key>SKIP_INSTALL</key>
+				<string>YES</string>
+			</dict>
+			<key>BuildPhases</key>
+			<array>
+				<dict>
+					<key>Class</key>
+					<string>Sources</string>
+				</dict>
+				<dict>
+					<key>Class</key>
+					<string>Frameworks</string>
+				</dict>
+				<dict>
+					<key>Class</key>
+					<string>Headers</string>
+				</dict>
+				<dict>
+					<key>Class</key>
+					<string>Resources</string>
+				</dict>
+			</array>
+		</dict>
+		<dict>
+			<key>TargetType</key>
+			<string>Aggregate</string>
+			<key>BuildPhases</key>
+			<array>
+				<dict>
+					<key>Class</key>
+					<string>ShellScript</string>
+					<key>ShellPath</key>
+					<string>/bin/sh</string>
+					<key>ShellScript</key>
+					<string># Sets the target folders and the final framework product.
+FMK_NAME=${PRODUCT_NAME}
+FMK_VERSION=A
+
+# Install dir will be the final output to the framework.
+# The following line create it in the root folder of the current project.
+INSTALL_DIR=${SRCROOT}/Products/${FMK_NAME}.framework
+
+# Working dir will be deleted after the framework creation.
+WRK_DIR=build
+DEVICE_DIR=${WRK_DIR}/Release-iphoneos/${FMK_NAME}.framework
+SIMULATOR_DIR=${WRK_DIR}/Release-iphonesimulator/${FMK_NAME}.framework
+
+# Building both architectures.
+xcodebuild -configuration &quot;Release&quot; -target &quot;${FMK_NAME}&quot; -sdk iphoneos
+xcodebuild -configuration &quot;Release&quot; -target &quot;${FMK_NAME}&quot; -sdk iphonesimulator
+
+# Cleaning the oldest.
+if [ -d &quot;${INSTALL_DIR}&quot; ]
+then
+rm -rf &quot;${INSTALL_DIR}&quot;
+fi
+
+# Creates and renews the final product folder.
+mkdir -p &quot;${INSTALL_DIR}&quot;
+mkdir -p &quot;${INSTALL_DIR}/Versions&quot;
+mkdir -p &quot;${INSTALL_DIR}/Versions/${FMK_VERSION}&quot;
+mkdir -p &quot;${INSTALL_DIR}/Versions/${FMK_VERSION}/Resources&quot;
+mkdir -p &quot;${INSTALL_DIR}/Versions/${FMK_VERSION}/Headers&quot;
+
+# Creates the internal links.
+# It MUST uses relative path, otherwise will not work when the folder is copied/moved.
+ln -s &quot;${FMK_VERSION}&quot; &quot;${INSTALL_DIR}/Versions/Current&quot;
+ln -s &quot;Versions/Current/Headers&quot; &quot;${INSTALL_DIR}/Headers&quot;
+ln -s &quot;Versions/Current/Resources&quot; &quot;${INSTALL_DIR}/Resources&quot;
+ln -s &quot;Versions/Current/${FMK_NAME}&quot; &quot;${INSTALL_DIR}/${FMK_NAME}&quot;
+
+# Copies the headers and resources files to the final product folder.
+cp -R &quot;${DEVICE_DIR}/Headers/&quot; &quot;${INSTALL_DIR}/Versions/${FMK_VERSION}/Headers/&quot;
+cp -R &quot;${DEVICE_DIR}/&quot; &quot;${INSTALL_DIR}/Versions/${FMK_VERSION}/Resources/&quot;
+
+# Removes the binary and header from the resources folder.
+rm -r &quot;${INSTALL_DIR}/Versions/${FMK_VERSION}/Resources/Headers&quot; &quot;${INSTALL_DIR}/Versions/${FMK_VERSION}/Resources/${FMK_NAME}&quot;
+
+# Uses the Lipo Tool to merge both binary files (i386 + armv6/armv7) into one Universal final product.
+lipo -create &quot;${DEVICE_DIR}/${FMK_NAME}&quot; &quot;${SIMULATOR_DIR}/${FMK_NAME}&quot; -output &quot;${INSTALL_DIR}/Versions/${FMK_VERSION}/${FMK_NAME}&quot;
+
+rm -r &quot;${WRK_DIR}&quot;</string>
+				</dict>
+			</array>
+			<key>Name</key>
+			<string>___PACKAGENAME___UniversalFramework</string>
+			<key>SharedSettings</key>
+			<dict>
+				<key>PRODUCT_NAME</key>
+				<string>___PACKAGENAME___</string>
+			</dict>
+		</dict>
+	</array>
+	<key>Nodes</key>
+	<array>
+		<string>___PACKAGENAME___-Prefix.pch:objC:importCocoa</string>
+		<string>___PACKAGENAME___-Info.plist:bundle</string>
+		<string>___PACKAGENAME___-Info.plist:NSHumanReadableCopyright</string>
+	</array>
+	<key>Definitions</key>
+	<dict>
+		<key>___PACKAGENAME___-Info.plist:bundle</key>
+		<string>&lt;key&gt;CFBundleDevelopmentRegion&lt;/key&gt;
+&lt;string&gt;English&lt;/string&gt;
+&lt;key&gt;CFBundleExecutable&lt;/key&gt;
+&lt;string&gt;${EXECUTABLE_NAME}&lt;/string&gt;
+&lt;key&gt;CFBundleName&lt;/key&gt;
+&lt;string&gt;${PRODUCT_NAME}&lt;/string&gt;
+&lt;key&gt;CFBundleIconFile&lt;/key&gt;
+&lt;string&gt;&lt;/string&gt;
+&lt;key&gt;CFBundleInfoDictionaryVersion&lt;/key&gt;
+&lt;string&gt;6.0&lt;/string&gt;
+&lt;key&gt;CFBundlePackageType&lt;/key&gt;
+&lt;string&gt;FMWK&lt;/string&gt;
+&lt;key&gt;CFBundleSignature&lt;/key&gt;
+&lt;string&gt;????&lt;/string&gt;
+&lt;key&gt;CFBundleVersion&lt;/key&gt;
+&lt;string&gt;1&lt;/string&gt;
+&lt;key&gt;CFBundleShortVersionString&lt;/key&gt;
+&lt;string&gt;1.0&lt;/string&gt;
+</string>
+	</dict>
+</dict>
+</plist>
